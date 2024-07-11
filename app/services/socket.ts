@@ -1,8 +1,10 @@
 import io from "socket.io-client";
 import auth from "../configs/auth";
+import { apiUrl } from "@/url";
+
 const token =localStorage.getItem(auth.storageTokenKeyName)
    
-const socket = io("http://192.168.1.165:8080", {
+const socket = io(apiUrl.liveUrl, {
     query: {
         token:token,
     },

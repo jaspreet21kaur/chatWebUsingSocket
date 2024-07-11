@@ -36,6 +36,7 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
   const [lastMessage, setLastMessage] = useState<any>("");
   const [typingResponse, setTypingResponse] = useState<any>([]);
   const [showOptions, setShowOptions] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   //formated time
   function convertTimestampToNormalTime(msgTime: any) {
@@ -104,7 +105,15 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
       token: token,
       conversation_id: conversationId,
     });
-
+    // console.log(selectedUser?._id,"current user")
+    const updatedUserdata = [...userdata];
+    const index = updatedUserdata.findIndex((user: any) => user._id === selectedUser._id);
+    if (index !== -1) {
+      // Move the selected user to the beginning of the array
+      const selectedUser = updatedUserdata.splice(index, 1)[0];
+      updatedUserdata.unshift(selectedUser);
+      setuserdata(updatedUserdata);
+    }
     // Update chat history with sent message
     // const sentMessage = {
     //   sender_id: currentUserId,
@@ -381,6 +390,16 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
       socket.emit("deleteMessages",deleteMsgData)
      
   }
+  //bottom scroll
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages, selectedUser]);
+  
   return (
     <div className="bg-red-700 shadow-lg rounded-lg h-full">
       <div className="px-5 py-5 flex justify-between max-w-full items-center bg-white border-b-2">
@@ -518,12 +537,7 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
                                     </p>
                                   </li>
                                   <li>
-                                    <a
-                                      href="#"
-                                      className="block cursor-pointer px-4 py-2 hover:underline  dark:text-white"
-                                    >
-                                      Edit
-                                    </a>
+                                    
                                   </li>
                                 </ul>
                               </div>
@@ -538,6 +552,7 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
                    <p>Typing....</p>
                 )} */}
               </div>
+              <div ref={messagesEndRef} />
             </div>
             </>
           ) : (
