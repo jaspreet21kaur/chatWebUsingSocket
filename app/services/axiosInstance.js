@@ -1,9 +1,11 @@
 import axios from 'axios'
 import auth from '../configs/auth'
+import { apiUrl } from '@/url'
+
 
 // console.log(process.env.BASE_URL)
 const axiosInstance = axios.create({
-  baseURL: `http://192.168.1.165:8080/`,
+  baseURL: apiUrl.liveUrl,
   headers: {
     'Content-Type': 'application/json'
   }
