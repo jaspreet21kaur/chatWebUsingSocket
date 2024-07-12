@@ -1,21 +1,20 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { IoSend } from "react-icons/io5";
-import auth from "../configs/auth";
 import { useRouter } from "next/navigation";
 import { useCookies } from "next-client-cookies";
-import {
-  LogoutApi,
-  getAllUserAPi,
-  getUserByIdAPi,
-} from "../services/apis/user";
 import { jwtDecode } from "jwt-decode";
 import Image from "next/image";
-import socket from "../services/socket";
 import moment from "moment-timezone";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import auth from "@/app/configs/auth";
+import { getAllUserAPi, LogoutApi, getUserByIdAPi } from "@/app/services/apis/user";
+import socket from "@/app/services/socket";
+import blankprofile from '../../../public/Images/blankProfile.webp'
+import { BiCheckDouble } from "react-icons/bi";
+import { BiCheck } from "react-icons/bi";
 
-const ChatWeb = (props: { route: any; navigation: any }) => {
+const ChatWeb = () => {
   const isFirstRender = useRef(true);
   const [value, onChangeText] = React.useState<string>("");
   const [message, setmessage] = useState("");
@@ -24,8 +23,7 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
   const router = useRouter();
   const [userdata, setuserdata] = useState([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [chatMessage, setChatMessage] = useState("");
-  const [online, setOnline] = useState(false);
+  const [online, setOnline] =useState<any>("");
   const isNotification = true;
   const conwocationidRef = useRef(null);
   const [conversationId, setConversationId] = useState("");
@@ -37,7 +35,8 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
   const [typingResponse, setTypingResponse] = useState<any>([]);
   const [showOptions, setShowOptions] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const [searchUser,setSearchUser]=useState("")
+  const [onlineUsers,setOnlineUsers]= useState<Array<any>>([]);
   //formated time
   function convertTimestampToNormalTime(msgTime: any) {
     const formatDateAndTime = moment(msgTime).format("DD-MM-YYYY h:mm A");
@@ -50,28 +49,42 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
     return normalTime;
   }
 
+  const handleSearchUser=()=>{
+    console.log(searchUser)
+  }
+
+  useEffect(()=>{
+    handleSearchUser() 
+  },[searchUser])
   //get all users
   const fetchData = async () => {
     try {
       const response = await getAllUserAPi();
       if (response?.status === 200) {
+        console.log(response)
         setuserdata(response?.userData);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
-
   //  logout
   const handleLogout = async () => {
+    // socket.on("userDisconnected",(response)=>{
+    //   console.log("disocnnt------",response)
+    // })
+    // socket.on("currentOnlineUsers",(response)=>{
+    //   console.log("currentOnlineUsers",response)
+    //   setOnlineUsers(response)
+    //  })
     const repsonse = await LogoutApi(currentUserId);
     if (repsonse?.status === 200) {
       localStorage.removeItem(auth.storageTokenKeyName);
       cookies.remove(auth.storageTokenKeyName);
       router.replace("/login");
+      
     }
   };
-
   //selected particular user to chat
   const handleUserClick = async (id: any) => {
     try {
@@ -84,14 +97,22 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
       console.error("Error selecting user:", error);
     }
   };
-
   //to get socket of a particular user
   useEffect(() => {
     if (socket && selectedUser) {
       joinChat();
     }
   }, [socket, selectedUser]);
-
+  useEffect(() => {
+    return () => {
+      if (socket) {
+        socket?.emit("leaveChat", {
+          userId: currentUserId,
+          chatId: conwocationidRef.current,
+        });
+      }
+    };
+  }, []);
   //send message
   const sendMessage = (e: any) => {
     const token = localStorage.getItem(auth.storageTokenKeyName);
@@ -127,7 +148,6 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
     setmessage("");
     onChangeText("");
   };
-
   // Join chat function
   const joinChat = () => {
     const tokenReceived = localStorage.getItem(auth.storageTokenKeyName);
@@ -138,8 +158,19 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
         targetUserId: selectedUser._id,
       });
     }
+    // socket.on('UserOnline', (data) => {
+    //   console.log('User Online:', data);
+    // });
+    // socket.on("userOnline", (response: any) => {
+    //   console.log(response,"online-----------11")
+    //  setOnline(true)
+    // });
+    // socket.on("userOffline", (response: any) => {
+    //   console.log(response,"online-----------11")
+    //  setOnline(false)
+    // });
+    
   };
-
   //join chat useeffect
   useEffect(() => {
     if (socket && selectedUser) {
@@ -147,7 +178,7 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
     }
 
     return () => {
-      if (socket && selectedUser) {
+      if (socket) {
         socket?.emit("leaveChat", {
           userId: currentUserId,
           chatId: conwocationidRef.current,
@@ -155,7 +186,6 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
       }
     };
   }, [socket, selectedUser]);
-
   //all sockets
   useEffect(() => {
     if (socket && selectedUser) {
@@ -166,14 +196,15 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
       });
 
       socket.on("previousMsg", async (response: any) => {
+        console.log(response,"--------------------perviousmessage")
         setChatMessages(response?.messages?.slice()?.reverse() || []);
-        if (
-          response?.conversation_id === response?.messages[0]?.conversation_id
-        ) {
-          setLastMessage(response?.messages[0]);
-        }
+       
       });
 
+      socket.on("currentOnlineUsers",(response)=>{
+        console.log("currentOnlineUsers",response)
+        setOnlineUsers(response)
+       })
       //4. all messages see
       // socket.on("allMessageSee", (response: any) => {
       //   console.log("all mesage see , all mesage se", response);
@@ -208,19 +239,17 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
         setTypingResponse(response);
       });
 
-      //8.user offline
-      socket.on("userOffline", (response: any) => {
-        if (conwocationidRef?.current == response.chatId) {
-          setOnline(false);
-        }
-      });
+      // 8.user offline
+      // socket.on("userOffline", (response: any) => {
+      //  console.log("ueroffline------22",response)
+      //     setOnline(false);
+        
+      // });
     
-      //9. user online
-      socket.on("userOnline", (response: any) => {
-        if (conwocationidRef?.current == response.chatId) {
-          setOnline(true);
-        }
-      });
+      // socket.on("userOnline", (response: any) => {
+      //   console.log(response,"online-----------33")
+      //  setOnline(response?.userId)
+      // });
 
       //10. new user msg
       socket.on("newUserMsg", (response: any) => {
@@ -236,24 +265,59 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
       })
     }
   }, [selectedUser]);
-
+  
+  
+  // useEffect(()=>{
+  //   socket.on("currentOnlineUsers",(response)=>{
+  //     console.log("currentOnlineUsers",response)
+  //     setOnlineUsers(response)
+  //    })
+  // },[socket,online,selectedUser,conversationId])
+  
   useEffect(() => {
     setSelectedUser(null);
     const token: any = localStorage.getItem(auth.storageTokenKeyName);
+    const stringtoken=JSON.stringify(token)
+    const decodeToken: any = jwtDecode(stringtoken);
     if (token) {
-      const decodeToken: any = jwtDecode(token);
+      console.log(decodeToken)
       setCurrentUserId(decodeToken?.id);
-      setOnline(decodeToken?.userLogin);
+      // setOnline(decodeToken?.userLogin);
       fetchData();
     }
 
-    //sockects
     //1. connection establish
     socket.on("connect", () => {
       console.log("connected to socket");
-    });
-  }, []);
+     socket.on("userConnected",(response)=>{
+      console.log("response user connected----",response)
+      socket.on("currentOnlineUsers",(response)=>{
+        console.log("currentOnlineUsers",response)
+        setOnlineUsers(response)
+       })
+     }) 
+     
+      //  socket.on("currentOnlineUsers",(response)=>{
+      //   console.log("currentOnlineUsers",response)
+      //  })
 
+    });
+   
+
+  //  socket.emit("onlineStatus", {token:token,online_status:decodeToken?.userLogin})
+
+    
+  // socket.on("userOnline", (response: any) => {
+  //   console.log("User online:", response);
+  //   setOnline(response.userId); // Update online status
+  // });
+
+  // Listen for user offline event
+  
+  }, [socket]);
+
+
+  
   //handle typing
   const handelTyping = (action: "start" | "stop") => {
     const userToken = localStorage.getItem(auth.storageTokenKeyName);
@@ -324,13 +388,30 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
 
   //get private messsage
   useEffect(() => {
+
     socket.on("GetPrivateMessage", (response) => {
-      // Check if the message belongs to the current conversation
+      console.log(response,"getprivaye msg")
       if (response.conversation_id === conversationId) {
         setChatMessages((prevMessages) => [...prevMessages, response]);
+            setLastMessage(response?.message)
+        // Optionally, scroll to bottom when new message arrives
+        // scrollToBottom();
+        // // Optionally, trigger voice notification
+        // if (response.sender_id !== currentUserId) {
+        //   speakMessage(response.message);
+        // }
+        // // Optionally, trigger browser notification
+        // if (Notification.permission === 'granted') {
+        //   showNotification(response.message);
+        // } else if (Notification.permission !== 'denied') {
+        //   Notification.requestPermission().then(permission => {
+        //     if (permission === 'granted') {
+        //       showNotification(response.message);
+        //     }
+        //   });
+        // }
       }
     });
-   
     
     return () => {
       socket.off("GetPrivateMessage");
@@ -400,6 +481,46 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
     scrollToBottom();
   }, [chatMessages, selectedUser]);
   
+
+//   const speakMessage = (text:any) => {
+//     const synth = window.speechSynthesis;
+//     const utterance = new SpeechSynthesisUtterance(text);
+//     synth.speak(utterance);
+//   };
+//   useEffect(() => {
+//     if (chatMessages.length > 0) {
+//       const lastMessage = chatMessages[chatMessages.length - 1];
+//       if (lastMessage.sender_id !== currentUserId) {
+//         speakMessage(lastMessage.message);
+//       }
+//     }
+//   }, [chatMessages]);
+//   // Function to show browser notification
+// const showNotification = (message:any) => {
+//   if (Notification.permission === 'granted') {
+//     new Notification('New Message', {
+//       body: message,
+//     });
+//   } else if (Notification.permission !== 'denied') {
+//     Notification.requestPermission().then(permission => {
+//       if (permission === 'granted') {
+//         new Notification('New Message', {
+//           body: message,
+//         });
+//       }
+//     });
+//   }
+// };
+
+// // UseEffect to trigger notification when a new message arrives
+// useEffect(() => {
+//   if (chatMessages.length > 0) {
+//     const lastMessage = chatMessages[chatMessages.length - 1];
+//     if (lastMessage.sender_id !== currentUserId) {
+//       showNotification(lastMessage);
+//     }
+//   }
+// }, [chatMessages]);
   return (
     <div className="bg-red-700 shadow-lg rounded-lg h-full">
       <div className="px-5 py-5 flex justify-between max-w-full items-center bg-white border-b-2">
@@ -417,8 +538,11 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
         <div className="flex flex-col  w-2/5 border-r-2 overflow-y-auto">
           <div className="border-b-2 py-4 px-2">
             <input
+            onClick={handleSearchUser}
               type="text"
-              placeholder="search chatting"
+              value={searchUser}
+              onChange={(e)=>setSearchUser(e.target.value)}
+              placeholder="Search user"
               className="py-2 px-2 border-2 border-gray-200 rounded-2xl w-full"
             />
           </div>
@@ -433,22 +557,25 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
                 }`}
                 onClick={() => handleUserClick(user?._id)} // Handle click on user
               >
-                <div className="w-1/4">
-                  {/* <Image src={boy} className="object-cover h-12 w-12 rounded-full" alt="" /> */}
+                <div className="w-1/6">
+                {user?.profileImg !=="null" ? 
+                <div className="flex relative">
+                  <Image width={200} height={200} src={user?.profileImg} className="object-cover h-12 w-12 rounded-full" alt="" /> 
                 </div>
+                :
+                <Image width={200} height={200} src={blankprofile} className="object-cover h-12 w-12 rounded-full" alt="" /> 
+                
+                }
+                  </div>
                 <div className="w-full">
                   <div className="text-lg font-semibold">{user?.fullName}</div>
 
-                  {lastMessage?.receiver_id === user._id && (
+                 
                     <span className="text-gray-500">
-                      {lastMessage?.message}
+                      {/* {lastMessage} */}
                     </span>
-                  )}
-                  {lastMessage?.sender_id === user._id && (
-                    <span className="text-gray-500">
-                      {lastMessage?.message}
-                    </span>
-                  )}
+                
+                 
                 </div>
               </div>
             ))
@@ -468,6 +595,8 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
               <div  className="flex flex-col fixed w-full bg-white p-6">
                 {/* <Image src={boy} className="object-cover h-12 w-12 rounded-full" alt="" /> */}
                 <p>{selectedUser?.fullName}</p>
+                <p className="text-xs">{onlineUsers.find(user => user.userId === selectedUser?._id)?.online &&  typingResponse?.typing !== true  ? "Online" : ""}</p>
+
                 {typingResponse?.userId === selectedUser?._id &&
                 typingResponse?.typing === true ? (
                   <p className="text-xs">
@@ -499,7 +628,10 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
                             {" "}
                             {convertTimestampToNormalTime(msg?.timestamp)}
                           </p>
-                          {msg.sender_id === currentUserId && (
+                          {msg.sender_id===currentUserId ?  <span className="z-[1]">{msg.message_state==="seen" ? <BiCheckDouble className="text-blue-500 w-5 h-5 mt-2" /> : <BiCheck className="w-5 mt- h-5"/> }</span> :""}
+                        </div>
+                      </div>
+                      {msg.sender_id === currentUserId && (
                             <>
                               <button
                                 onClick={() => handleDeleteMesssage(msg?._id)}
@@ -543,8 +675,7 @@ const ChatWeb = (props: { route: any; navigation: any }) => {
                               </div>
                             </>
                           )}
-                        </div>
-                      </div>
+
                     </div>
                   </div>
                 ))}

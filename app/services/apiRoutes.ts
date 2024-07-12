@@ -1,5 +1,6 @@
 export const loginRoutes={
-    login:"/api/v1/login"
+    login:"/api/v1/login",
+    register:"/api/v1/register"
 }
 
 export const UserRoutes={
