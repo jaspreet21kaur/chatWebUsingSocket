@@ -34,7 +34,6 @@ const Login = () => {
             const repsonse=await LoginApi(values)
             if(repsonse?.status===200){
                 localStorage.setItem(auth.storageTokenKeyName,repsonse?.token)
-                localStorage.setItem("userId",repsonse?.user?._id)
                 cookies.set(auth.storageTokenKeyName, repsonse?.token);
                 router.push("/chatweb")
             }else{

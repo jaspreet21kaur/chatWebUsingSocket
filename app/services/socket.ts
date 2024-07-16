@@ -11,7 +11,7 @@ const socket = io(apiUrl.localUrl, {
     transports: ["websocket"],
 });
 
-socket.on("connect", () => {
+socket.on("connected", () => {
   console.log("connect to the web socket");
 });
 socket.on("disconnect", () => {
