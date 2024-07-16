@@ -109,7 +109,7 @@ const ChatWeb = () => {
         });
       }
     };
-  }, [currentUserId]);
+  }, []);
 
   const sendMessage = (e: any) => {
 
