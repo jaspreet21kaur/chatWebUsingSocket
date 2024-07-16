@@ -69,7 +69,7 @@ const Login = () => {
                     <div>
                         <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
                         <div className="bg-gray-50 flex items-center justify-between border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                        <input className='dark:text-white dark:placeholder-gray-900 dark:bg-gray-900 outline-none border-none' type={hidepassword===true ? "password" : "text"} name="password" value={values.password} onChange={handleChange} onBlur={handleBlur} id="password" placeholder="••••••••"  required/>
+                        <input className='bg-transparent  outline-none border-none' type={hidepassword===true ? "password" : "text"} name="password" value={values.password} onChange={handleChange} onBlur={handleBlur} id="password" placeholder="••••••••"  required/>
                         <p className='cursor-pointer' onClick={()=>handlePassword()}> {hidepassword ===true ? <FiEyeOff className='w-5 h-5'/> : <FiEye  className='w-5 h-5'/>}</p>
                         </div>
                         

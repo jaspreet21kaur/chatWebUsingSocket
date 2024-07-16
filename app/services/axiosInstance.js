@@ -5,7 +5,7 @@ import { apiUrl } from '@/url'
 
 // console.log(process.env.BASE_URL)
 const axiosInstance = axios.create({
-  baseURL: apiUrl.liveUrl,
+  baseURL: apiUrl.localUrl,
   headers: {
     'Content-Type': 'application/json'
   }
