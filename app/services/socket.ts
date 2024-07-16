@@ -4,7 +4,7 @@ import { apiUrl } from "@/url";
 
 const token = typeof window !== 'undefined' ? localStorage.getItem(auth.storageTokenKeyName) : null;
    
-const socket = io(apiUrl.localUrl, {
+const socket = io(apiUrl.liveUrl, {
     query: {
         token:token,
     },
