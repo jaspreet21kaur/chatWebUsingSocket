@@ -70,7 +70,9 @@ const ChatWeb = () => {
   const handleLogout = async () => {
     const repsonse = await LogoutApi(currentUserId);
     if (repsonse?.status === 200) {
+      if (typeof window !== "undefined") {
       localStorage.removeItem(auth.storageTokenKeyName);
+      }
       cookies.remove(auth.storageTokenKeyName);
       setDisconnectId("")
       router.replace("/login");
@@ -107,10 +109,11 @@ const ChatWeb = () => {
         });
       }
     };
-  }, []);
+  }, [currentUserId]);
 
   const sendMessage = (e: any) => {
-    const token = localStorage.getItem(auth.storageTokenKeyName);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem(auth.storageTokenKeyName) : null;
     e.preventDefault();
 
     socket?.emit("sendPrivateMessage", {
@@ -134,7 +137,7 @@ const ChatWeb = () => {
   };
 
   const joinChat = () => {
-    const tokenReceived = localStorage.getItem(auth.storageTokenKeyName);
+    const tokenReceived = typeof window !== 'undefined' ? localStorage.getItem(auth.storageTokenKeyName) : null;
     if (tokenReceived && selectedUser) {
       socket?.emit("joinRoom", {
         isNotification,
@@ -204,7 +207,7 @@ const ChatWeb = () => {
   
  
   useEffect(() => {
-    const token: any = localStorage.getItem(auth.storageTokenKeyName);
+    const token = typeof window !== 'undefined' ? localStorage.getItem(auth.storageTokenKeyName) : null;
     const stringtoken=JSON.stringify(token)
     const decodeToken: any = jwtDecode(stringtoken);
     if (token) {
@@ -230,7 +233,7 @@ const ChatWeb = () => {
   }, [currentUserId,socket,selectedUser]);
   
   const handelTyping = (action: "start" | "stop") => {
-    const userToken = localStorage.getItem(auth.storageTokenKeyName);
+    const userToken = typeof window !== 'undefined' ? localStorage.getItem(auth.storageTokenKeyName) : null;
     const data = {
       token: userToken,
       conversation_id: conversationId,
@@ -262,14 +265,7 @@ const ChatWeb = () => {
     }
   }, [message]);
 
-  const onTextChange = (text: string) => {
-    onChangeText(text); 
-    if (text.trim() === "") {
-      handelTyping("stop");
-    } else {
-      handelTyping("start");
-    }
-  };
+ 
 
   
   const handleTextChange = (e: any) => {

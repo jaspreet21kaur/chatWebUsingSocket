@@ -2,7 +2,7 @@ import io from "socket.io-client";
 import auth from "../configs/auth";
 import { apiUrl } from "@/url";
 
-const token =localStorage.getItem(auth.storageTokenKeyName)
+const token = typeof window !== 'undefined' ? localStorage.getItem(auth.storageTokenKeyName) : null;
    
 const socket = io(apiUrl.localUrl, {
     query: {

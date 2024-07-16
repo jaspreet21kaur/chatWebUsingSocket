@@ -33,7 +33,9 @@ const Login = () => {
         onSubmit:async(values,action)=>{
             const repsonse=await LoginApi(values)
             if(repsonse?.status===200){
+                if (typeof window !== "undefined") {
                 localStorage.setItem(auth.storageTokenKeyName,repsonse?.token)
+                }
                 cookies.set(auth.storageTokenKeyName, repsonse?.token);
                 router.push("/chatweb")
             }else{
