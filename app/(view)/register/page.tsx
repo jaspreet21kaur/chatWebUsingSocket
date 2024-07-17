@@ -18,7 +18,6 @@ let RegisterValue={
     
 }
 
-
 const RegisterSchema=yup.object({
     fullName:yup.string().required("Please enter your name"),
     email:yup.string().email().required("Please enter email"),
@@ -65,18 +64,18 @@ const Register = () => {
                 <form className="space-y-4 md:space-y-6" action="#" onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor="fullName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your Name</label>
-                        <input type="text" name="fullName" value={values.fullName} onChange={handleChange} onBlur={handleBlur} id="fullName" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="John" required/>
+                        <input type="text" name="fullName" value={values.fullName} onChange={handleChange} onBlur={handleBlur} id="fullName" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg   block w-full p-2.5" placeholder="John" required/>
                         {errors?.fullName && touched?.fullName ? <p className='text-red-600'>{errors.fullName}</p> : null}                    
                     </div>
                     <div>
                         <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
-                        <input type="email" name="email" value={values.email} onChange={handleChange} onBlur={handleBlur} id="email" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="john@gmail.com" required/>
+                        <input type="email" name="email" value={values.email} onChange={handleChange} onBlur={handleBlur} id="email" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg  block w-full p-2.5 " placeholder="john@gmail.com" required/>
                         {errors?.email && touched?.email ? <p className='text-red-600'>{errors.email}</p> : null}                    
                     </div>
                     <div>
                         <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-                        <div className="bg-gray-50 flex items-center justify-between border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                        <input className='dark:text-white outline-none border-none' type={hidepassword===true ? "password" : "text"} name="password" value={values.password} onChange={handleChange} onBlur={handleBlur} id="password" placeholder="••••••••"  required/>
+                        <div className="bg-gray-50 flex items-center justify-between border border-gray-300 text-gray-900 rounded-lg  w-full p-2.5 ">
+                        <input className='outline-none border-none dark:bg-transparent' type={hidepassword===true ? "password" : "text"} name="password" value={values.password} onChange={handleChange} onBlur={handleBlur} id="password" placeholder="••••••••"  required/>
                         <p className='cursor-pointer' onClick={()=>handlePassword()}> {hidepassword ===true ? <FiEyeOff className='w-5 h-5'/> : <FiEye  className='w-5 h-5'/>}</p>
                         </div>
                         {errors?.password && touched?.password ? <p className='text-red-600 mt-2'>{errors?.password}</p> : null}
