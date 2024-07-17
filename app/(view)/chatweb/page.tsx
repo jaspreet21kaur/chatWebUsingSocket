@@ -141,6 +141,7 @@ const ChatWeb = () => {
         targetUserId: selectedUser._id,
       });
     }
+   
   };
 
   useEffect(() => {
@@ -154,17 +155,14 @@ const ChatWeb = () => {
           conwocationidRef.current = response?.conversation_id;
         }
        
-        
+         
       });
 
       socket.on("previousMsg", async (response: any) => {
         setChatMessages(response?.messages?.slice()?.reverse() || []);
       });
 
-      socket.on("currentOnlineUsers", (response) => {
-        setOnlineUsers(response);
-      });
-
+      
       socket.on("typingStart", (response: any) => {
         if (response?.conversation_id != conwocationidRef.current) return;
         setTypingResponse(response);
@@ -206,15 +204,25 @@ const ChatWeb = () => {
       setCurrentUserId(decodeToken?.id);
       fetchData();
     }
+    socket.on("currentOnlineUsers", (response) => {
+      console.log(response,"online users aht first empty user effect----")
+      setOnlineUsers(response);
+    });
   }, []);
 
   useEffect(() => {
-    socket.on("userConnected", (response) => {});
+    socket.on("userConnected", () => {
+       socket.on("currentOnlineUsers", (response1) => {
+        console.log(response1,"on connected with every user")
+        setOnlineUsers(response1);
+      });
+    });
 
     return () => {
       socket.off("userConnected");
+      socket.off('currentOnlineUsers')
     };
-  }, [currentUserId, socket, selectedUser]);
+  }, [socket]);
 
   const handelTyping = (action: "start" | "stop") => {
     const userToken =
@@ -273,12 +281,21 @@ const ChatWeb = () => {
 
   useEffect(() => {
     socket.on("GetPrivateMessage", (response) => {
-      // console.log(response,"get private message")
       if (response.conversation_id === conversationId) {
         setChatMessages((prevMessages) => [...prevMessages, response]);
       }
-      
+      const updatedUserdata = [...userdata];
+      const senderId = response.sender_id;
+      const index = updatedUserdata.findIndex((user:any) => user._id === senderId);
+
+      if (index !== -1) {
+        const selectedUser = updatedUserdata.splice(index, 1)[0]; 
+        updatedUserdata.unshift(selectedUser);
+        setuserdata(updatedUserdata); 
+      }
+      if(response.conversation_id !==conversationId){
       setShowNotifi(true);
+      }
       setLastMessages((prevLastMessages) => ({
         ...prevLastMessages,
         [response.sender_id]: {
@@ -301,7 +318,7 @@ const ChatWeb = () => {
     return () => {
       socket.off("GetPrivateMessage");
     };
-  }, [conversationId]);
+  }, [userdata,conversationId]);
 
   useEffect(() => {
     socket.on("startTyping", () => {
@@ -364,16 +381,7 @@ const ChatWeb = () => {
     scrollToBottom();
   }, [chatMessages, selectedUser]);
 
-  useEffect(() => {
-    socket.on("currentOnlineUsers", (response) => {
-      setOnlineUsers(response);
-    });
-
-    return () => {
-      socket.off("currentOnlineUsers");
-    };
-  }, [socket]);
-
+ 
 //  console.log(conversationId,"current conversation id")
 
   return (
