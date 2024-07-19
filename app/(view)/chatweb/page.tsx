@@ -425,7 +425,7 @@ const ChatWeb = () => {
           )}
 
           {selectedUser && (
-            <TypingComponent message={message} handleTextChange={handleTextChange} sendMessage={sendMessage}/>
+            <TypingComponent  message={message} handleTextChange={handleTextChange} sendMessage={sendMessage}/>
           )}
         </div>
       </div>

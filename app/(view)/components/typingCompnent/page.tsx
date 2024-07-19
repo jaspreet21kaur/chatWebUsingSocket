@@ -15,6 +15,7 @@ const TypingComponent = ({message,handleTextChange,sendMessage}:{message:string,
       <button onClick={sendMessage}>
         <IoSend className="w-6 h-6" />
       </button>
+      
     </form>
   </div>
   )
